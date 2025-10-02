@@ -6,6 +6,7 @@
 import discord
 import random
 import hashlib
+import os
 import aiohttp
 
 TOKEN = os.environ.get("DISCORD_TOKEN")
@@ -114,5 +115,6 @@ try:
     client.run(TOKEN)
 except Exception as e:
     print(f"ERROR: Could not run the bot. Check that the TOKEN is correct. Error: {e}")
+
 
 
