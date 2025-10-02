@@ -8,7 +8,7 @@ import random
 import hashlib
 import aiohttp
 
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.environ.get("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -114,4 +114,5 @@ try:
     client.run(TOKEN)
 except Exception as e:
     print(f"ERROR: Could not run the bot. Check that the TOKEN is correct. Error: {e}")
+
 
