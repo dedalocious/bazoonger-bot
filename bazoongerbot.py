@@ -8,6 +8,26 @@ import random
 import hashlib
 import os
 import aiohttp
+from flask import Flask             # <-- ADD THIS IMPORT
+from threading import Thread        # <-- ADD THIS IMPORT
+
+# --- START OF WEB SERVER CODE ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "I'm alive"
+
+def run():
+  # Note: Render provides the PORT environment variable.
+  port = int(os.environ.get('PORT', 8080)) 
+  app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+# --- END OF WEB SERVER CODE ---
+
 
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
@@ -69,7 +89,7 @@ async def on_message(message):
                     async with session.get(image_url) as resp:
                         if resp.status == 200:
                             image_bytes = await resp.read()
-                            image_hash = hashlib.sha256(image_bytes).hexdigest()
+                            image_hash = hashlib.sha2D5(image_bytes).hexdigest()
                             random.seed(image_hash)
             except Exception as e:
                 print(f"Error downloading or hashing image: {e}")
@@ -78,9 +98,6 @@ async def on_message(message):
         arcluz_rating = min(random.randint(1, 10), random.randint(1, 10))
         random.seed()
 
-        # --- THIS IS THE MODIFIED SECTION ---
-
-        # First, determine the description based on the rating
         if arcluz_rating == 1:
             rating_description = "Way too small."
         elif arcluz_rating == 2:
@@ -102,7 +119,6 @@ async def on_message(message):
         else: # rating is 10
             rating_description = "It's massive!"
         
-        # Now, construct the final response with the added phrase
         response = f"**{arcluz_rating}/10** - {rating_description} on the arcluz scale."
 
         await message.reply(response)
@@ -111,10 +127,9 @@ async def on_message(message):
 # RUN THE BOT
 #----------------------------------------------------------------------------------------------------------------------------------
 
+keep_alive() # <-- ADD THIS LINE TO START THE WEB SERVER
+
 try:
     client.run(TOKEN)
 except Exception as e:
     print(f"ERROR: Could not run the bot. Check that the TOKEN is correct. Error: {e}")
-
-
-
