@@ -8,8 +8,8 @@ import random
 import hashlib
 import os
 import aiohttp
-from flask import Flask             # <-- ADD THIS IMPORT
-from threading import Thread        # <-- ADD THIS IMPORT
+from flask import Flask
+from threading import Thread
 
 # --- START OF WEB SERVER CODE ---
 app = Flask('')
@@ -20,7 +20,7 @@ def home():
 
 def run():
   # Note: Render provides the PORT environment variable.
-  port = int(os.environ.get('PORT', 8080)) 
+  port = int(os.environ.get('PORT', 8080))
   app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
@@ -60,8 +60,17 @@ async def on_message(message):
 
     message_content_lower = message.content.lower()
 
+    # --- START OF NEW CODE BLOCK ---
+    # Responds to the gender question
+    if "are you a boy or a girl?" in message_content_lower:
+        gender_choice = random.choice(["I am a boy", "I am a girl", "My gender is undisclosed"])
+        response = f"{gender_choice}, but still not big enough for arcluz in the scale."
+        await message.reply(response)
+        return # Use return to stop processing after this command
+    # --- END OF NEW CODE BLOCK ---
+    
     if client.user.mentioned_in(message) and any(command in message_content_lower for command in command_triggers):
-        
+
         image_url = None
 
         if message.attachments:
@@ -69,7 +78,7 @@ async def on_message(message):
                 if attachment.content_type and attachment.content_type.startswith('image/'):
                     image_url = attachment.url
                     break
-        
+
         if not image_url and message.reference and message.reference.message_id:
             try:
                 replied_to_message = await message.channel.fetch_message(message.reference.message_id)
@@ -89,12 +98,12 @@ async def on_message(message):
                     async with session.get(image_url) as resp:
                         if resp.status == 200:
                             image_bytes = await resp.read()
-                            image_hash = hashlib.sha2D5(image_bytes).hexdigest()
+                            image_hash = hashlib.sha256(image_bytes).hexdigest()
                             random.seed(image_hash)
             except Exception as e:
                 print(f"Error downloading or hashing image: {e}")
                 pass
-        
+
         arcluz_rating = min(random.randint(1, 10), random.randint(1, 10))
         random.seed()
 
@@ -118,7 +127,7 @@ async def on_message(message):
             rating_description = "Very big."
         else: # rating is 10
             rating_description = "It's massive!"
-        
+
         response = f"**{arcluz_rating}/10** - {rating_description} on the arcluz scale."
 
         await message.reply(response)
