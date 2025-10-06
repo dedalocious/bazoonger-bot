@@ -58,9 +58,9 @@ async def on_message(message):
         'give it a rating'
     ]
 
-    message_content_lower = message.content.lower()
+    message_content_lower = message.content.lower().strip()
 
-    # --- START OF NEW/IMPROVED CODE BLOCK FOR QUESTIONS ---
+    # --- START OF TEXT COMMANDS SECTION ---
 
     # Responds to the gender question more flexibly
     gender_keywords = ["are you a boy or a girl", "what is your gender", "are you a boy", "are you a girl"]
@@ -68,7 +68,7 @@ async def on_message(message):
         gender_choice = random.choice(["I am a boy", "I am a girl", "My gender is undisclosed"])
         response = f"{gender_choice}, but still not big enough for arcluz in the scale."
         await message.reply(response)
-        return # Stop processing after this command
+        return
 
     # Responds to the "inverted or protuberant" question
     if "inverted or protuberant" in message_content_lower:
@@ -76,9 +76,49 @@ async def on_message(message):
         scale_rating = random.randint(1, 10)
         response = f"{type_choice}, but only on the scale {scale_rating}/10."
         await message.reply(response)
-        return # Stop processing after this command
+        return
 
-    # --- END OF NEW/IMPROVED CODE BLOCK ---
+    # --- START OF NEW COMPARISON CODE ---
+    # Responds to comparison questions like "is X bigger than Y" or "A vs B"
+    comparison_triggers = ['bigger than', 'vs']
+    for trigger in comparison_triggers:
+        if trigger in message_content_lower:
+            try:
+                # Split the message into two parts based on the trigger
+                parts = message_content_lower.split(trigger, 1)
+                
+                # Extract the last word from the first part as item 1
+                item1 = parts[0].strip().split(' ')[-1]
+                
+                # Extract the first word from the second part as item 2, cleaning punctuation
+                item2 = parts[1].strip().split(' ')[0].rstrip('?!.')
+
+                if not item1 or not item2: # Basic check to see if items were extracted
+                    continue
+
+                # Generate two different random scores
+                score1 = random.randint(1, 10)
+                score2 = random.randint(1, 10)
+
+                # Construct the response
+                response = (f"Let's compare them on the arcluz scale...\n"
+                            f"**{item1.capitalize()}** scores a **{score1}/10**.\n"
+                            f"**{item2.capitalize()}** scores a **{score2}/10**.\n\n")
+
+                if score1 > score2:
+                    response += f"Looks like **{item1.capitalize()}** is bigger!"
+                elif score2 > score1:
+                    response += f"Looks like **{item2.capitalize()}** is bigger!"
+                else:
+                    response += "It's a tie! They are perfectly balanced on the scale."
+                
+                await message.reply(response)
+                return
+            except IndexError:
+                # This can happen if the trigger is at the very start/end of the message
+                continue # Try the next trigger
+    # --- END OF NEW COMPARISON CODE ---
+
 
     if client.user.mentioned_in(message) and any(command in message_content_lower for command in command_triggers):
 
@@ -109,7 +149,6 @@ async def on_message(message):
                     async with session.get(image_url) as resp:
                         if resp.status == 200:
                             image_bytes = await resp.read()
-                            # Fixed the hashlib function to sha256
                             image_hash = hashlib.sha256(image_bytes).hexdigest()
                             random.seed(image_hash)
             except Exception as e:
