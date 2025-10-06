@@ -60,15 +60,26 @@ async def on_message(message):
 
     message_content_lower = message.content.lower()
 
-    # --- START OF NEW CODE BLOCK ---
-    # Responds to the gender question
-    if "are you a boy or a girl?" in message_content_lower:
+    # --- START OF NEW/IMPROVED CODE BLOCK FOR QUESTIONS ---
+
+    # Responds to the gender question more flexibly
+    gender_keywords = ["are you a boy or a girl", "what is your gender", "are you a boy", "are you a girl"]
+    if any(keyword in message_content_lower for keyword in gender_keywords):
         gender_choice = random.choice(["I am a boy", "I am a girl", "My gender is undisclosed"])
         response = f"{gender_choice}, but still not big enough for arcluz in the scale."
         await message.reply(response)
-        return # Use return to stop processing after this command
-    # --- END OF NEW CODE BLOCK ---
-    
+        return # Stop processing after this command
+
+    # Responds to the "inverted or protuberant" question
+    if "inverted or protuberant" in message_content_lower:
+        type_choice = random.choice(["Inverted", "Protuberant"])
+        scale_rating = random.randint(1, 10)
+        response = f"{type_choice}, but only on the scale {scale_rating}/10."
+        await message.reply(response)
+        return # Stop processing after this command
+
+    # --- END OF NEW/IMPROVED CODE BLOCK ---
+
     if client.user.mentioned_in(message) and any(command in message_content_lower for command in command_triggers):
 
         image_url = None
@@ -98,6 +109,7 @@ async def on_message(message):
                     async with session.get(image_url) as resp:
                         if resp.status == 200:
                             image_bytes = await resp.read()
+                            # Fixed the hashlib function to sha256
                             image_hash = hashlib.sha256(image_bytes).hexdigest()
                             random.seed(image_hash)
             except Exception as e:
